@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""polymarket-nvidia-ceo-forecast-01 entry.
+"""polymarket-nvidia-ceo-forecast-01 entry v2.
 
 Reads each case file <id>.in in the input dir (canonical JSON, one market per
 entry with its 1-minute Yes-price grid up to the checkpoint) and writes
 <id>.out: for every market, 240 rows of the five quantiles (0.05..0.95) of
 the price at minutes 1..240 after the checkpoint.
 
-Model: per market, blend the realized volatility of the last 120 and last
-360 one-minute returns, spread it over the horizon as sigma * sqrt(h)^1.1,
-center the median on the last price, and emit normal quantiles clamped to
-[0,1] and rounded to 6 decimals. Fully deterministic, stdlib only.
+Model: per market, blend the realized volatility of the last 45 and last 360
+one-minute returns, spread it over the horizon as sigma * sqrt(h)^1.05, center
+the median on the last price, and emit normal quantiles clamped to [0,1] and
+rounded to 6 decimals. Fully deterministic, stdlib only.
 """
 import json
 import math
@@ -19,9 +19,9 @@ QUANTILES = [0.05, 0.25, 0.5, 0.75, 0.95]
 Z = [-1.644854, -0.67449, 0.0, 0.67449, 1.644854]
 
 # blended-window volatility weights (short window, long window)
-W_SHORT, C_SHORT = 120, 0.35
-W_LONG, C_LONG = 360, 0.20
-POW_H = 1.1  # horizon spread exponent, tuned on the practice cases
+W_SHORT, C_SHORT = 45, 0.30
+W_LONG, C_LONG = 360, 0.25
+POW_H = 1.05  # horizon spread exponent (45/360-window blend won on 19 pseudo-cases + 6 practice)
 
 
 def price6(x):
